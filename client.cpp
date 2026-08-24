@@ -5,6 +5,11 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "Structures.h"
+#include <thread>
+#include <chrono>
+
+using std::this_thread::sleep_for;
+using std::chrono::seconds;
 
 int main() {
 
@@ -30,13 +35,19 @@ int main() {
     }
     std::cout<<"Connected to server"<<std::endl;
 
-
+    int i = 0;
     MachineState myMachine;
-    myMachine.m_id = 1;
-    myMachine.m_temperature = 12.5f;
-    myMachine.m_flag= true;
-
-    send (clientSocket,&myMachine, sizeof(MachineState),0);
-
+    ServerCommand comand;
+    comand.m_code = true;
+    myMachine.m_temperature = 0;
+    while (true) {
+        myMachine.m_id = 1+i++;
+        myMachine.m_temperature +=10.5f;
+        myMachine.m_flag= true;
+        send (clientSocket,&myMachine, sizeof(MachineState),0);
+        recv(clientSocket,&comand, sizeof(ServerCommand),0);
+        if (!comand.m_code) break;
+        sleep_for(seconds(1));
+    }
     close(clientSocket);
 }
